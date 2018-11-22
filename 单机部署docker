@@ -1,0 +1,83 @@
+# 单机部署docker
+1.安装docker服务
+  # yum -y install docker 
+  启动并开启开机自启
+  # systemctl start docker && systemctl enable docker 
+2.配置IP转发
+  #vim /etc/sysctl.conf
+    net.ipv4.ip_forward=1
+  #sysctl -p 
+  开启IP转发后需要重启docker服务
+3.修改docker国内镜像源
+    #vim /etc/docker/daemon.json
+      {
+      “registry-mirrors”: [“https://registry.docker-cn.com“] 
+      }
+    #systemctl restart daemon-reload 
+    #systemctl restart docker
+4.搜索docker镜像
+    #docker search centos
+      INDEX       NAME                                         DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
+      docker.io   docker.io/centos                             The official build of CentOS.                   4939      [OK]       
+      docker.io   docker.io/ansible/centos7-ansible            Ansible on Centos7                              119                  [OK]
+      docker.io   docker.io/jdeathe/centos-ssh                 CentOS-6 6.10 x86_64 / CentOS-7 7.5.1804 x...   99                   [OK]
+      docker.io   docker.io/consol/centos-xfce-vnc             Centos container with "headless" VNC sessi...   70                   [OK]
+      docker.io   docker.io/imagine10255/centos6-lnmp-php56    centos6-lnmp-php56                              47                   [OK]
+      docker.io   docker.io/tutum/centos                       Simple CentOS docker image with SSH access      43                   
+      docker.io   docker.io/centos/mysql-57-centos7            MySQL 5.7 SQL database server                   42                   
+      docker.io   docker.io/gluster/gluster-centos             Official GlusterFS Image [ CentOS-7 +  Glu...   37                   [OK]
+      docker.io   docker.io/openshift/base-centos7             A Centos7 derived base image for Source-To...   36                   
+      docker.io   docker.io/centos/postgresql-96-centos7       PostgreSQL is an advanced Object-Relationa...   35                   
+      docker.io   docker.io/centos/python-35-centos7           Platform for building and running Python 3...   32                   
+      docker.io   docker.io/kinogmt/centos-ssh                 CentOS with SSH                                 24                   [OK]
+      docker.io   docker.io/openshift/jenkins-2-centos7        A Centos7 based Jenkins v2.x image for use...   18                   
+      docker.io   docker.io/centos/php-56-centos7              Platform for building and running PHP 5.6 ...   16                   
+      docker.io   docker.io/pivotaldata/centos-gpdb-dev        CentOS image for GPDB development. Tag nam...   8                    
+      docker.io   docker.io/openshift/wildfly-101-centos7      A Centos7 based WildFly v10.1 image for us...   6                    
+      docker.io   docker.io/openshift/jenkins-1-centos7        DEPRECATED: A Centos7 based Jenkins v1.x i...   4                    
+      docker.io   docker.io/darksheer/centos                   Base Centos Image -- Updated hourly             3                    [OK]
+      docker.io   docker.io/pivotaldata/centos                 Base centos, freshened up a little with a ...   2                    
+      docker.io   docker.io/pivotaldata/centos-mingw           Using the mingw toolchain to cross-compile...   2                    
+      docker.io   docker.io/blacklabelops/centos               CentOS Base Image! Built and Updates Daily!     1                    [OK]
+      docker.io   docker.io/pivotaldata/centos-gcc-toolchain   CentOS with a toolchain, but unaffiliated ...   0                    
+      docker.io   docker.io/pivotaldata/centos7-build          CentosOS 7 image for GPDB compilation           0                    
+      docker.io   docker.io/pivotaldata/centos7-test           CentosOS 7 image for GPDB testing               0                    
+      docker.io   docker.io/smartentry/centos                  centos with smartentry                          0                    [OK]
+  5.下载docker镜像
+    #docker pull  docker.io/centos 
+  6.docker平台上的基本用法
+    docker：
+      run #运行docker实例
+      -i #以交互模式运行容器，通常与-t同时使用
+      -t #为容器重新分配一个为终端
+      例：docker run -it docker.io/centos   /bin/bash 
+      -d #后台运行容器，并返回容器ID
+      -c #后面跟待完成的命令
+      -p #映射端口
+      例：docker run -d -p 80:80 docker.io/centos:httpd  #后台运行并把实例的80端口映射出来
+      docker logs 容器实例的Name ID  #查看正在运行的容器输出信息（错误或正确）
+      docker ps #列出正在运行的容器信息
+      docker  ps -a #列出所有容器实例
+      docker rm 容器的NameID   #删除容器   -f 强制删除运行中的容器
+      docker  rmi  容器的Name ID  #删除镜像
+      docker start  容器的Name ID  #启动容器
+      docker stop  容器的Name ID   #停止容器
+  7.docker镜像制作
+      docker commit 容器Name ID 镜像名  
+      docker build -t  #使用Dokerflie文件自动化制作 image
+      例：
+          #mkdir build && cd build 
+          #vim Dockerfile 
+            FROM docker.io/centos:latest
+            MAINTAINER  <Ricardo-mao@163.com>
+            RUN yum -y install httpd 
+            ADD start.sh /usr/local/bin/start.sh 
+            ADD index.html  /var/www/html/index.html
+            CMD /usr/local/bin/start.sh 
+          #echo "/usr/sbin/httpd -DFOREGROUND" > start.sh 
+          #echo "docker build test" > index.html 
+          #docker build -t docker.io/centos:httpd  ./ 
+     8.导出镜像
+          #docker save -o docker.io-centos-httpd.tar  docker.io/centos:httpd 
+      
+    
